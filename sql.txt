@@ -1,0 +1,45 @@
+SELECT s.SponsorName, SUM(c.ContractValue) AS TotalContractValue
+FROM Sponsors s
+JOIN Contracts c ON s.SponsorID = c.SponsorID
+JOIN Payments p ON c.ContractID = p.ContractID
+WHERE p.PaymentStatus = 'Completed'
+GROUP BY s.SponsorName
+HAVING COUNT(p.PaymentID) > 0;
+
+
+2.
+SELECT s.SponsorName, COUNT(DISTINCT m.MatchID) AS NumberOfMatches
+FROM Sponsors s
+JOIN Contracts c ON s.SponsorID = c.SponsorID
+JOIN Matches m ON c.MatchID = m.MatchID
+GROUP BY s.SponsorName
+HAVING COUNT(DISTINCT m.MatchID) > 1;
+
+
+3.
+SELECT s.SponsorName,
+       SUM(c.ContractValue) AS TotalContractValue,
+       CASE
+           WHEN SUM(c.ContractValue) > 500000 THEN 'Platinum'
+           WHEN SUM(c.ContractValue) BETWEEN 200000 AND 500000 THEN 'Gold'
+           WHEN SUM(c.ContractValue) BETWEEN 100000 AND 200000 THEN 'Silver'
+           ELSE 'Bronze'
+       END AS Category
+FROM Sponsors s
+JOIN Contracts c ON s.SponsorID = c.SponsorID
+GROUP BY s.SponsorName;
+
+
+4.
+WITH AvgContractValue AS (
+    SELECT AVG(c.ContractValue) AS OverallAverage
+    FROM Contracts c
+)
+
+SELECT m.MatchName, AVG(c.ContractValue) AS AvgContractValue
+FROM Matches m
+JOIN Contracts c ON m.MatchID = c.MatchID
+GROUP BY m.MatchName
+HAVING AVG(c.ContractValue) > (SELECT OverallAverage FROM AvgContractValue);
+
+
